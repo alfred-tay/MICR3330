@@ -37,6 +37,9 @@ else
 fi
 
 # dedicated env: base has perl-bio-samtools pinning samtools to 0.1.19
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
 conda install -y --override-channels -c conda-forge -c bioconda --strict-channel-priority \
     blast fastqc clustalo raxml cd-hit diamond samtools abricate \
     bbmap shovill quast dfast seqkit snp-sites fasttree
