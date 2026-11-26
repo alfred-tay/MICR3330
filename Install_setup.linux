@@ -56,6 +56,7 @@ cd MICR3330_Bioinformatics
 unzip Contigs_dir.zip
 unzip References_dir.zip
 unzip fastq_dir.zip
+cd ..
 
 echo
 echo "Done. Open a new terminal (or run: source ~/.bashrc), then: conda activate bioinf"
