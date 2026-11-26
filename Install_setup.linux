@@ -36,15 +36,21 @@ else
     exit 1
 fi
 
-# dedicated env: base has perl-bio-samtools pinning samtools to 0.1.19
+# accept Anaconda channel Terms of Service (one-off, harmless to repeat)
 conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
 conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
+# dedicated env: fast solve, does not touch base
 conda create -y -n bioinf --override-channels -c conda-forge -c bioconda --strict-channel-priority \
     python=3.11 \
     blast fastqc clustalo raxml cd-hit diamond samtools abricate \
     bbmap shovill quast dfast seqkit snp-sites fasttree gdown
+conda activate bioinf
 abricate --setupdb --quiet
+
+# download shared folder (scripts/databases) from Google Drive
+cd "$BIO_DIR"
+gdown --folder 13iPSVLzRlJ7e5Ag1xnP-rfEpzjXvVxFu
 
 echo
 echo "Done. Open a new terminal (or run: source ~/.bashrc), then: conda activate bioinf"
