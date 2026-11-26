@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -e
+
+hostID=$(hostname)
+if ! grep -q "$hostID" /etc/hosts; then
+    sudo -- sh -c "echo '127.0.1.1 $hostID' >> /etc/hosts"
+fi
+if ! grep -q "127.0.0.1 localhost" /etc/hosts; then
+    sudo -- sh -c "echo '127.0.0.1 localhost' >> /etc/hosts"
+fi
+
+mkdir -p /home/ubuntu/Bioinformatics/Scripts
+
+sudo apt update
+sudo apt install -y unzip default-jre
+
+if ! grep -q "/home/ubuntu/Bioinformatics" /home/ubuntu/.bashrc; then
+    echo 'export PATH=$PATH:/home/ubuntu/Bioinformatics/' >> /home/ubuntu/.bashrc
+    echo 'export PATH=$PATH:/home/ubuntu/Bioinformatics/Scripts' >> /home/ubuntu/.bashrc
+fi
+
+if command -v conda >/dev/null 2>&1; then
+    eval "$(conda shell.bash hook)"
+    conda activate base
+    conda install -y -c conda-forge -c bioconda \
+        blast \
+        fastqc clustalo raxml cd-hit diamond samtools abricate \
+        bbmap shovill quast dfast seqkit snp-sites fasttree
+    abricate --setupdb
+else
+    echo "Conda was not found on PATH. Install Miniconda first, then run this script again."
+fi
+
+source /home/ubuntu/.bashrc
