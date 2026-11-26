@@ -56,6 +56,13 @@ cd MICR3330_Bioinformatics
 unzip Contigs_dir.zip
 unzip References_dir.zip
 unzip fastq_dir.zip
+rm *.zip
+cd ../Scripts
+wget -q "https://raw.githubusercontent.com/alfred-tay/MICR3330/refs/heads/main/23s_resistance.linux" \
+     "https://raw.githubusercontent.com/alfred-tay/MICR3330/refs/heads/main/GyrA_resistance.linux" \
+     "https://raw.githubusercontent.com/alfred-tay/MICR3330/refs/heads/main/Gene_extraction_part1.linux" \
+     "https://raw.githubusercontent.com/alfred-tay/MICR3330/refs/heads/main/Gene_extraction_part2.linux"
+chmod +x *.linux
 cd ..
 
 echo
