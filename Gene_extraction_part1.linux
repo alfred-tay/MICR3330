@@ -1,0 +1,74 @@
+#!/bin/bash
+set -euo pipefail
+today_date=$(date +"%d-%m-%y")
+
+echo "Requires abricate and samtools (any version)."
+echo "Run in a folder with your genomes (.fa/.fasta) and the reference file."
+read -p "Reference file name: " Ref1
+
+dbdir="$(dirname "$(command -v abricate)")/../db"
+echo "Preparing database in ${dbdir}"
+mkdir -p "${dbdir}/${Ref1}"
+cp "$Ref1" "${dbdir}/${Ref1}/sequences"
+abricate --setupdb --quiet
+
+# normalise .fa -> .fasta
+for f in *.fa; do
+    [ -e "$f" ] || continue
+    mv "$f" "${f%.fa}.fasta" > /dev/null 2>&1
+done
+
+echo "Locating gene coordinates. *_list"
+for f in *.fasta; do
+    abricate --minid 50 --mincov 50 --quiet --db "$Ref1" "$f" > "${f%.fasta}_list"
+done
+#rm -rf "${dbdir}/${Ref1}"
+#echo "Extracting genes."
+
+rm -rf "${dbdir}/${Ref1}"
+
+# build FASTA indices once, keeps extraction quiet
+for f in *.fasta; do
+    samtools faidx "$f" > /dev/null 2>&1
+done
+
+echo "Extracting genes."
+
+for list in *_list; do
+    [ -e "$list" ] || continue
+    base=${list%_list}
+    tail -n +2 "$list" | while IFS=$'\t' read -r _ seq start end strand gene _; do
+        out="${base}_${gene}"
+        [ -e "$out" ] && out="${base}_${gene}_${start}"   # keep duplicate hits
+        if [ "$strand" = "-" ]; then
+            samtools faidx "${base}.fasta" "${seq}:${start}-${end}" \
+                | perl -ne 'if (/^>/) { print; next } chomp; $s .= $_; END { $s = reverse $s; $s =~ tr/ACGTNacgtn/TGCANtgcan/; print "$s\n" }' \
+                > "$out"
+        else
+            samtools faidx "${base}.fasta" "${seq}:${start}-${end}" > "$out"
+        fi
+        sed -i "1s/.*/>${base}_${gene}/" "$out"
+    done
+done
+rm -f ./*.fai
+
+echo "Preparing report. Gene_extraction_report_${today_date}.csv"
+mapfile -t genes < <(grep '^>' "$Ref1" | sed 's/^>//' | cut -d' ' -f1)
+{
+    printf 'ID'
+    for g in "${genes[@]}"; do printf '\t%s' "$g"; done
+    printf '\n'
+    for f in *.fasta; do
+        base=${f%.fasta}
+        printf '%s' "$base"
+        for g in "${genes[@]}"; do
+            if [ -f "${base}_${g}" ]; then
+                len=$(awk '!/^>/{l+=length($0)} END{print l+0}' "${base}_${g}")
+            else
+                len=0
+            fi
+            printf '\t%s' "$len"
+        done
+        printf '\n'
+    done
+} > "Gene_extraction_report_${today_date}.csv"
