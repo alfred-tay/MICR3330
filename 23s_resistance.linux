@@ -6,11 +6,11 @@ set -u  # Treat unset variables as errors
 TODAY_DATE=$(date +"%d-%m-%y")
 
 # Download reference gene list
-REF_DB_DIR=~/miniconda3/db/23s_ref
+REF_DB_DIR=~/miniconda3/envs/bioinf/db/23s_ref
 REF_FILE=23s_ref
 
   mkdir -p $REF_DB_DIR
-  cat > ~/miniconda3/db/23s_ref/sequences <<EOF
+  cat > ~/miniconda3/envs/bioinf/db/23s_ref/sequences <<EOF
 >23s
 TAAGGCAGTGGTAGCGCTGAAGAATATTCGTGCAATTGTCGTTATTCATTATAAAAAGGGCGGGTTTTAAAGGATATTTTAAAATTTAAAACAAGCTTTTAAGAGCAGATGGCGGATGCCTTGCCAAAGAGA
 GGCGATGAAGGACGTACTAGACTGCGATAAGCTATGCGGAGCTGTCAAGGA
@@ -47,7 +47,7 @@ TGAAGCTCGCACAAAGACTATGTGCTTGATAGGGTAGATGTGTGAGCGCAG
 TAATGCGTTTAGCTGACTACTACTAATAGAGCGTTTGGCTTGTTTTT
 
 EOF
-  cp ~/miniconda3/db/23s_ref/sequences ./23s_ref
+  cp ~/miniconda3/envs/bioinf/db/23s_ref/sequences ./23s_ref
   abricate --setupdb --quiet
 
 # Rename .fa files to .fasta
