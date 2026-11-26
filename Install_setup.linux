@@ -1,35 +1,47 @@
 #!/bin/bash
+set -euo pipefail
 
-set -e
+# Do not run this script with sudo
+if [ "$EUID" -eq 0 ]; then
+    echo "Run as your normal user; sudo is asked for only where needed."
+    exit 1
+fi
 
 hostID=$(hostname)
-if ! grep -q "$hostID" /etc/hosts; then
-    sudo -- sh -c "echo '127.0.1.1 $hostID' >> /etc/hosts"
+if ! grep -qw "$hostID" /etc/hosts; then
+    echo "127.0.1.1 $hostID" | sudo tee -a /etc/hosts > /dev/null
 fi
-if ! grep -q "127.0.0.1 localhost" /etc/hosts; then
-    sudo -- sh -c "echo '127.0.0.1 localhost' >> /etc/hosts"
+if ! grep -q "^127.0.0.1[[:space:]]\+localhost" /etc/hosts; then
+    echo "127.0.0.1 localhost" | sudo tee -a /etc/hosts > /dev/null
 fi
 
-mkdir -p /home/ubuntu/Bioinformatics/Scripts
+BIO_DIR="$HOME/Bioinformatics"
+mkdir -p "$BIO_DIR/Scripts"
 
 sudo apt update
-sudo apt install -y unzip default-jre
+sudo apt install -y unzip default-jre-headless
 
-if ! grep -q "/home/ubuntu/Bioinformatics" /home/ubuntu/.bashrc; then
-    echo 'export PATH=$PATH:/home/ubuntu/Bioinformatics/' >> /home/ubuntu/.bashrc
-    echo 'export PATH=$PATH:/home/ubuntu/Bioinformatics/Scripts' >> /home/ubuntu/.bashrc
+if ! grep -q "$BIO_DIR" "$HOME/.bashrc"; then
+    echo "export PATH=\$PATH:$BIO_DIR" >> "$HOME/.bashrc"
+    echo "export PATH=\$PATH:$BIO_DIR/Scripts" >> "$HOME/.bashrc"
 fi
 
-if command -v conda >/dev/null 2>&1; then
+# conda is usually not on PATH in non-interactive shells, load it explicitly
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+elif command -v conda >/dev/null 2>&1; then
     eval "$(conda shell.bash hook)"
-    conda activate base
-    conda install -y -c conda-forge -c bioconda \
-        blast \
-        fastqc clustalo raxml cd-hit diamond samtools abricate \
-        bbmap shovill quast dfast seqkit snp-sites fasttree
-    abricate --setupdb
 else
-    echo "Conda was not found on PATH. Install Miniconda first, then run this script again."
+    echo "Conda was not found. Install Miniconda first, then rerun." >&2
+    exit 1
 fi
 
-source /home/ubuntu/.bashrc
+# dedicated env: base has perl-bio-samtools pinning samtools to 0.1.19
+conda create -y -n bioinf -c conda-forge -c bioconda --strict-channel-priority \
+    blast fastqc clustalo raxml cd-hit diamond samtools abricate \
+    bbmap shovill quast dfast seqkit snp-sites fasttree
+conda activate bioinf
+abricate --setupdb --quiet
+
+echo
+echo "Done. Open a new terminal (or run: source ~/.bashrc), then: conda activate bioinf"
