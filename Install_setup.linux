@@ -43,7 +43,7 @@ conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 conda create -y -n bioinf --override-channels -c conda-forge -c bioconda --strict-channel-priority \
     python=3.11 \
     blast fastqc clustalo raxml cd-hit diamond samtools abricate \
-    bbmap shovill quast dfast seqkit snp-sites fasttree
+    bbmap shovill quast dfast seqkit snp-sites fasttree gdown
 abricate --setupdb --quiet
 
 echo
