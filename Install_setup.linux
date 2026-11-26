@@ -52,5 +52,10 @@ abricate --setupdb --quiet
 cd "$BIO_DIR"
 gdown --folder 13iPSVLzRlJ7e5Ag1xnP-rfEpzjXvVxFu
 
+cd MICR3330_Bioinformatics
+unzip Contigs_dir.zip
+unzip References_dir.zip
+unzip fastq_dir.zip
+
 echo
 echo "Done. Open a new terminal (or run: source ~/.bashrc), then: conda activate bioinf"
