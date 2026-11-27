@@ -43,7 +43,7 @@ conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 # dedicated env: fast solve, does not touch base
 conda create -y -n bioinf --override-channels -c conda-forge -c bioconda --strict-channel-priority \
     python=3.11 \
-    blast fastqc clustalo raxml cd-hit diamond samtools abricate \
+    blast fastqc clustalo raxml cd-hit diamond samtools fastp abricate \
     bbmap shovill quast dfast seqkit snp-sites fasttree figtree aliview gdown
 conda activate bioinf
 abricate --setupdb --quiet
